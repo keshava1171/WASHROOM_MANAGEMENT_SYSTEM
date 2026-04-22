@@ -130,8 +130,9 @@
                                         $idleClasses = "asset-tile relative rounded-2xl border-2 flex flex-col items-center justify-center gap-2 text-center transition-all {$bgClass} {$textClass}";
                                     @endphp
                                     <div id="room-{{ $room->id }}"
-                                         data-type="task"
-                                         data-id="{{ $room->taskId ?? '' }}"
+                                         data-type="room"
+                                         data-id="{{ $room->id }}"
+                                         data-task-id="{{ $room->taskId ?? '' }}"
                                          data-name="{{ $room->room_number }}"
                                          data-floor-id="{{ $slug }}"
                                          data-has-task="{{ $hasTask ? '1' : '0' }}"
@@ -146,18 +147,19 @@
                                     </div>
                                 @endforeach
 
-                                {{-- ── PUBLIC WASHROOM TILES ── --}}
-                                @foreach($publicWashrooms as $washroom)
-                                    @php
-                                        $hasTask = !is_null($washroom->taskId);
-                                        $bgClass   = $hasTask ? 'bg-amber-500/20 border-amber-500/50' : 'bg-slate-800 border-slate-700/50';
-                                        $textClass = $hasTask ? 'text-amber-300' : 'text-slate-500';
-                                        $idleClasses = "asset-tile relative rounded-2xl border-2 flex flex-col items-center justify-center gap-2 text-center transition-all {$bgClass} {$textClass}";
-                                    @endphp
-                                    <div id="washroom-{{ $washroom->id }}"
-                                         data-type="task"
-                                         data-id="{{ $washroom->taskId ?? '' }}"
-                                         data-name="{{ $washroom->room_number }}"
+                                    {{-- ── PUBLIC WASHROOM TILES ── --}}
+                                    @foreach($publicWashrooms as $washroom)
+                                        @php
+                                            $hasTask = !is_null($washroom->taskId);
+                                            $bgClass   = $hasTask ? 'bg-amber-500/20 border-amber-500/50' : 'bg-slate-800 border-slate-700/50';
+                                            $textClass = $hasTask ? 'text-amber-300' : 'text-slate-500';
+                                            $idleClasses = "asset-tile relative rounded-2xl border-2 flex flex-col items-center justify-center gap-2 text-center transition-all {$bgClass} {$textClass}";
+                                        @endphp
+                                        <div id="washroom-{{ $washroom->id }}"
+                                             data-type="public"
+                                             data-id="{{ $washroom->id }}"
+                                             data-task-id="{{ $washroom->taskId ?? '' }}"
+                                             data-name="{{ $washroom->room_number }}"
                                          data-floor-id="{{ $slug }}"
                                          data-has-task="{{ $hasTask ? '1' : '0' }}"
                                          data-idle-classes="{{ $idleClasses }}"
@@ -330,7 +332,14 @@
         btn.disabled = true;
         btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> SYNCING...`;
 
-        const taskIds = selectedAssets.map(a => a.id).filter(id => id !== '');
+        const taskIds = selectedAssets.map(a => a.el.dataset.taskId).filter(id => id && id !== '');
+
+        if (taskIds.length === 0) {
+            alert('No assigned tasks selected.');
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+            return;
+        }
 
         try {
             const response = await fetch("{{ route('staff.tasks.complete.bulk') }}", {
