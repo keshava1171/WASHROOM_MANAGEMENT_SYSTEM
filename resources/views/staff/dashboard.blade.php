@@ -228,20 +228,26 @@
 
 <script>
     let selectedAssets = [];
-
+ 
     function toggleSelection(el, forceState = null, skipTrayUpdate = false) {
         const id = el.dataset.id;
         const type = el.dataset.type;
         const index = selectedAssets.findIndex(a => a.id === id && a.type === type);
-
+        
         const isCurrentlySelected = index !== -1;
         const shouldBeSelected = forceState !== null ? forceState : !isCurrentlySelected;
 
         if (shouldBeSelected) {
             if (!isCurrentlySelected) {
-                selectedAssets.push({ type, id, name: el.dataset.name, floor_id: el.dataset.floorId, el });
+                selectedAssets.push({ 
+                    type: type, 
+                    id: id, 
+                    name: el.dataset.name, 
+                    floor_id: el.dataset.floorId, 
+                    el: el 
+                });
                 el.dataset.oldClasses = el.className;
-                el.className = "asset-tile cursor-pointer relative rounded-2xl border-2 flex flex-col items-center justify-center gap-2 text-center transition-all bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/30 scale-[1.02] z-20";
+                el.className = "asset-tile relative cursor-pointer rounded-2xl border-2 flex flex-col items-center justify-center gap-2 text-center transition-all bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/30 scale-[1.02] z-20";
             }
         } else {
             if (isCurrentlySelected) {
@@ -249,43 +255,53 @@
                 selectedAssets.splice(index, 1);
             }
         }
-
+        
         if (!skipTrayUpdate) {
             updateTray();
             syncFloorButtonState(el.dataset.floorId);
         }
     }
-
+ 
     function bulkSelectFloorUnits(gridId, btn) {
         const grid = document.getElementById(gridId);
-        if (!grid) return;
-        const tiles = Array.from(grid.querySelectorAll('.asset-tile'));
-        const floorId = gridId.replace('floor-grid-', '');
-
-        const allSelected = tiles.every(tile => selectedAssets.some(a => a.el === tile));
+        const tiles = grid.querySelectorAll('.asset-tile');
+        const floorId = gridId.split('-').pop();
+        
+        const allSelected = Array.from(tiles).every(tile => selectedAssets.some(a => a.el === tile));
         const finalState = !allSelected;
 
-        tiles.forEach(tile => toggleSelection(tile, finalState, true));
+        tiles.forEach(tile => {
+            toggleSelection(tile, finalState, true);
+        });
+        
         updateTray();
         syncFloorButtonState(floorId);
     }
 
     function syncFloorButtonState(floorId) {
-        const grid = document.getElementById(`floor-grid-${floorId}`);
+        const gridId = `floor-grid-${floorId}`;
+        const grid = document.getElementById(gridId);
         if (!grid) return;
-        const tiles = Array.from(grid.querySelectorAll('.asset-tile'));
-        const allSelected = tiles.length > 0 && tiles.every(tile => selectedAssets.some(a => a.el === tile));
+
+        const tiles = grid.querySelectorAll('.asset-tile');
+        const allSelected = Array.from(tiles).every(tile => selectedAssets.some(a => a.el === tile));
+        
         const floorPanel = document.getElementById(`floor-${floorId}`);
         if (!floorPanel) return;
-        const btn = floorPanel.querySelector('button[onclick*="bulkSelectFloorUnits"]');
-        if (btn) btn.innerText = allSelected ? "Unselect All Nodes" : "Select Floor Nodes";
-    }
 
+        const btn = floorPanel.querySelector('button[onclick*="bulkSelectFloorUnits"]');
+        if (btn) {
+            btn.innerText = allSelected ? "Unselect All Nodes" : "Select Floor Nodes";
+        }
+    }
+ 
     function updateTray() {
         const tray = document.getElementById('execution-command-tray');
-        const counter = document.getElementById('execution-counter');
+        const count = document.getElementById('execution-counter');
         const labels = document.getElementById('selected-labels');
-        counter.innerText = selectedAssets.length.toString().padStart(2, '0');
+ 
+        count.innerText = selectedAssets.length.toString().padStart(2, '0');
+        
         if (selectedAssets.length > 0) {
             tray.classList.remove('translate-y-full');
             tray.classList.add('translate-y-0');
