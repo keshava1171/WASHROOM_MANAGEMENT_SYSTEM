@@ -90,13 +90,35 @@ class StaffController extends Controller
     public function bulkCompleteTasks(Request $request)
     {
         $request->validate([
-            'task_ids' => 'required|array',
-            'task_ids.*' => 'integer',
+            'selections' => 'required|array',
+            'selections.*.id' => 'required',
+            'selections.*.type' => 'required|in:room,public',
+            'selections.*.floor_id' => 'required',
         ]);
 
-        foreach ($request->task_ids as $taskId) {
-            $task = Task::find($taskId);
-            if ($task && $task->assigned_to === auth()->id()) {
+        foreach ($request->selections as $selection) {
+            if (!empty($selection['task_id'])) {
+                $task = Task::find($selection['task_id']);
+                if ($task && $task->assigned_to === auth()->id()) {
+                    $task->markAsCompleted();
+                }
+            } else {
+                // Ad-hoc task completion: Create a completed task record instantly for tracking
+                $data = [
+                    'floor_id' => $selection['floor_id'],
+                    'assigned_to' => auth()->id(),
+                    'status' => 'completed',
+                ];
+                
+                if ($selection['type'] === 'public') {
+                    $data['room_id'] = null;
+                    $data['washroom_id'] = $selection['id'];
+                } else {
+                    $data['room_id'] = $selection['id'];
+                    $data['washroom_id'] = null;
+                }
+                
+                $task = Task::create($data);
                 $task->markAsCompleted();
             }
         }

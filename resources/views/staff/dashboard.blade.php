@@ -135,6 +135,7 @@
                                          data-task-id="{{ $room->taskId ?? '' }}"
                                          data-name="{{ $room->room_number }}"
                                          data-floor-id="{{ $slug }}"
+                                         data-floor-db-id="{{ $floor->id }}"
                                          data-has-task="{{ $hasTask ? '1' : '0' }}"
                                          data-idle-classes="{{ $idleClasses }}"
                                          onclick="toggleSelection(this)"
@@ -161,6 +162,7 @@
                                              data-task-id="{{ $washroom->taskId ?? '' }}"
                                              data-name="{{ $washroom->room_number }}"
                                          data-floor-id="{{ $slug }}"
+                                         data-floor-db-id="{{ $floor->id }}"
                                          data-has-task="{{ $hasTask ? '1' : '0' }}"
                                          data-idle-classes="{{ $idleClasses }}"
                                          onclick="toggleSelection(this)"
@@ -332,10 +334,15 @@
         btn.disabled = true;
         btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> SYNCING...`;
 
-        const taskIds = selectedAssets.map(a => a.el.dataset.taskId).filter(id => id && id !== '');
+        const selections = selectedAssets.map(a => ({
+            id: a.el.dataset.id,
+            type: a.el.dataset.type,
+            floor_id: a.el.dataset.floorDbId,
+            task_id: a.el.dataset.taskId
+        }));
 
-        if (taskIds.length === 0) {
-            alert('No assigned tasks selected.');
+        if (selections.length === 0) {
+            alert('No valid selections made.');
             btn.disabled = false;
             btn.innerHTML = originalContent;
             return;
@@ -345,7 +352,7 @@
             const response = await fetch("{{ route('staff.tasks.complete.bulk') }}", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                body: JSON.stringify({ task_ids: taskIds })
+                body: JSON.stringify({ selections: selections })
             });
 
             if (response.ok) {
