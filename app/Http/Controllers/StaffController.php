@@ -79,7 +79,7 @@ class StaffController extends Controller
     public function completeTask(Task $task)
     {
 
-        if ($task->assigned_to !== auth()->id()) {
+        if ($task->assigned_to != auth()->id()) {
             abort(403);
         }
 
@@ -99,7 +99,7 @@ class StaffController extends Controller
         foreach ($request->selections as $selection) {
             if (!empty($selection['task_id'])) {
                 $task = Task::find($selection['task_id']);
-                if ($task && $task->assigned_to === auth()->id()) {
+                if ($task && $task->assigned_to == auth()->id()) {
                     $task->markAsCompleted();
                 }
             } else {
