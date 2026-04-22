@@ -111,7 +111,6 @@ class StaffController extends Controller
         // Load all non-completed tasks for this staff member, sorted by floor level
         $tasksByFloor = Task::with(['floor', 'room', 'washroom'])
             ->where('assigned_to', $user->id)
-            ->whereIn('status', ['pending', 'in_progress', 'assigned'])
             ->get()
             ->sortBy(fn($t) => $t->floor->level ?? 999)
             ->groupBy(fn($t) => $t->floor->name ?? 'GENERAL');
