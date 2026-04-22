@@ -40,7 +40,7 @@
 
     <div class="top-bar no-print">
         <div style="font-size:13px; color:#555;">
-            <strong>Live Document.</strong> Shows all cleaning tasks assigned to this operative: <strong>{{ now()->format('d M Y H:i:s') }}</strong>
+            <strong>Live Document.</strong> Shows only <u>pending / in-progress / assigned</u> cleaning tasks at time of generation: <strong>{{ now()->format('d M Y H:i:s') }}</strong>
         </div>
         <div class="print-btns">
             <button class="btn-print" onclick="window.print()">🖨 Print Cleaning Paper</button>
@@ -67,8 +67,8 @@
 
     @if($tasksByFloor->isEmpty())
         <div class="no-data-box">
-            <strong>NO CLEANING TASKS ASSIGNED</strong><br><br>
-            No tasks have been allocated to you yet.<br>
+            <strong>NO PENDING CLEANING TASKS</strong><br><br>
+            All assigned tasks have been completed, or no tasks have been allocated yet.<br>
             <span style="font-size:13px;">Once new tasks are assigned by Command, they will appear here automatically.</span>
         </div>
     @else
@@ -77,7 +77,7 @@
         @foreach($tasksByFloor as $floorName => $tasks)
             <div class="floor-section">
                 <div class="floor-header">
-                    {{ $floorName }} — {{ $tasks->count() }} Assigned Unit(s)
+                    {{ $floorName }} — {{ $tasks->count() }} Pending Unit(s)
                 </div>
                 <table>
                     <thead>
@@ -118,8 +118,8 @@
         @endforeach
 
         <div class="summary-box">
-            <div>Total Assigned Units: <strong>{{ $totalCount }}</strong></div>
-            <div>This paper contains all historical tasks for the current shift.</div>
+            <div>Total Pending Units: <strong>{{ $totalCount }}</strong></div>
+            <div>Completed tasks are NOT shown in this paper.</div>
         </div>
     @endif
 
