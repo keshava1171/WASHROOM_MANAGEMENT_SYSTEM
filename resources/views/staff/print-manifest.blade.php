@@ -72,7 +72,7 @@
             <span style="font-size:13px;">Once new tasks are assigned by Command, they will appear here automatically.</span>
         </div>
     @else
-        @php $totalCount = $tasksByFloor->flatten()->count(); @endphp
+        @php $totalCount = $tasksByFloor->sum(fn($group) => $group->count()); @endphp
 
         @foreach($tasksByFloor as $floorName => $tasks)
             <div class="floor-section">
@@ -94,10 +94,10 @@
                         @php $rowNum = 1; @endphp
                         @foreach($tasks as $task)
                             @php
-                                $roomNo   = $task->room->room_number ?? $task->washroom->room_number ?? '—';
-                                $unitType = ($task->room_id && $task->room)
-                                    ? ucfirst($task->room->type ?? 'Standard') . ' Room'
-                                    : 'Public Washroom';
+                                $roomNo   = $task->washroom_id ? ($task->washroom->room_number ?? '—') : ($task->room->room_number ?? '—');
+                                $unitType = $task->washroom_id 
+                                    ? ($task->room_id ? 'Private Washroom' : 'Public Washroom')
+                                    : ucfirst($task->room->type ?? 'Standard') . ' Room';
                             @endphp
                             <tr>
                                 <td>{{ $rowNum++ }}</td>
