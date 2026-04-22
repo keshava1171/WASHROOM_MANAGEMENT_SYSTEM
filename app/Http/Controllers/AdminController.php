@@ -209,7 +209,7 @@ class AdminController extends Controller
                 // Standalone washroom (not attached to a room)
                 $washroom = Washroom::find($selection['id']);
                 if ($washroom) {
-                    Task::firstOrCreate([
+                    Task::updateOrCreate([
                         'floor_id' => $selection['floor_id'],
                         'room_id' => null,
                         'washroom_id' => $washroom->id,
@@ -220,7 +220,7 @@ class AdminController extends Controller
                 // Room node — create ONE task for the room, no washroom loop
                 $room = Room::find($selection['id']);
                 if ($room) {
-                    Task::firstOrCreate([
+                    Task::updateOrCreate([
                         'floor_id' => $selection['floor_id'],
                         'room_id' => $room->id,
                         'washroom_id' => null,
