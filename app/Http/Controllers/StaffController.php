@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\Complaint;
+use App\Models\Floor;
 
 class StaffController extends Controller
 {
@@ -12,24 +13,46 @@ class StaffController extends Controller
     {
         $user = auth()->user();
 
+        // Tasks grouped by floor for the stats counter
         $tasks = Task::with(['floor', 'room', 'washroom'])
             ->where('assigned_to', $user->id)
             ->get()
-            ->sortBy(function ($task) {
-                return $task->floor->level ?? 999;
-            })
-            ->groupBy(function ($task) {
-                return $task->floor->name ?? 'GENERAL GRID';
-            });
+            ->sortBy(fn($t) => $t->floor->level ?? 999)
+            ->groupBy(fn($t) => $t->floor->name ?? 'GENERAL GRID');
+
+        // Full facility floors with rooms & washrooms (mirrors admin grid)
+        $floors = Floor::with([
+            'rooms' => fn($q) => $q->orderBy('room_number'),
+            'washrooms' => fn($q) => $q->orderBy('room_number'),
+        ])->orderBy('level')->get();
+
+        // My active tasks keyed by room_id / washroom_id for status colouring
+        $myTasks = Task::where('assigned_to', $user->id)
+            ->whereIn('status', ['pending', 'assigned', 'in_progress'])
+            ->get();
+
+        // Annotate rooms and washrooms with task status
+        $floors->each(function ($floor) use ($myTasks) {
+            foreach ($floor->rooms as $room) {
+                $t = $myTasks->firstWhere('room_id', $room->id);
+                $room->taskStatus = $t ? $t->status : null;
+                $room->taskId    = $t ? $t->id : null;
+            }
+            foreach ($floor->washrooms as $washroom) {
+                $t = $myTasks->firstWhere('washroom_id', $washroom->id);
+                $washroom->taskStatus = $t ? $t->status : null;
+                $washroom->taskId    = $t ? $t->id : null;
+            }
+        });
 
         $stats = [
-            'pending_tasks' => Task::where('assigned_to', $user->id)->where('status', 'pending')->count(),
-            'in_progress_tasks' => Task::where('assigned_to', $user->id)->where('status', 'in_progress')->count(),
-            'completed_tasks' => Task::where('assigned_to', $user->id)->where('status', 'completed')->count(),
+            'pending_tasks'    => Task::where('assigned_to', $user->id)->where('status', 'pending')->count(),
+            'in_progress_tasks'=> Task::where('assigned_to', $user->id)->where('status', 'in_progress')->count(),
+            'completed_tasks'  => Task::where('assigned_to', $user->id)->where('status', 'completed')->count(),
             'total_complaints' => Complaint::whereIn('status', ['pending', 'in_progress'])->count(),
         ];
 
-        return view('staff.dashboard', compact('tasks', 'stats'));
+        return view('staff.dashboard', compact('tasks', 'floors', 'stats'));
     }
 
     public function tasks()
