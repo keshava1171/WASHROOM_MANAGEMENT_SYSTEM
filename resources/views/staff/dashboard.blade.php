@@ -123,56 +123,50 @@
 
                                 {{-- ── ROOM TILES ── --}}
                                 @foreach($floor->rooms as $room)
+                                    @if(!is_null($room->taskId))
                                     @php
-                                        $hasTask = !is_null($room->taskId);
-                                        $bgClass   = $hasTask ? 'bg-amber-500/20 border-amber-500/50' : 'bg-slate-800 border-slate-700/50';
-                                        $textClass = $hasTask ? 'text-amber-300' : 'text-slate-500';
-                                        $idleClasses = "asset-tile relative rounded-2xl border-2 flex flex-col items-center justify-center gap-2 text-center transition-all {$bgClass} {$textClass}";
+                                        $idleClasses = "asset-tile relative rounded-2xl border-2 flex flex-col items-center justify-center gap-2 text-center transition-all bg-amber-500/20 border-amber-500/50 text-amber-300";
                                     @endphp
                                     <div id="room-{{ $room->id }}"
                                          data-type="room"
                                          data-id="{{ $room->id }}"
-                                         data-task-id="{{ $room->taskId ?? '' }}"
+                                         data-task-id="{{ $room->taskId }}"
                                          data-name="{{ $room->room_number }}"
                                          data-floor-id="{{ $slug }}"
                                          data-floor-db-id="{{ $floor->id }}"
-                                         data-has-task="{{ $hasTask ? '1' : '0' }}"
+                                         data-has-task="1"
                                          data-idle-classes="{{ $idleClasses }}"
                                          onclick="toggleSelection(this)"
                                          class="{{ $idleClasses }} cursor-pointer group/tile hover:scale-110 hover:z-30 hover:border-indigo-500/50 shadow-xl hover:shadow-indigo-500/10">
-                                        <i class="fas fa-hospital text-xl {{ $hasTask ? 'opacity-70 group-hover/tile:opacity-100 group-hover/tile:text-indigo-400' : 'opacity-40 group-hover/tile:text-indigo-400' }} transition-all"></i>
+                                        <i class="fas fa-hospital text-xl opacity-70 group-hover/tile:opacity-100 group-hover/tile:text-indigo-400 transition-all"></i>
                                         <span class="text-xs font-black tracking-tight leading-none group-hover/tile:text-white">{{ $room->room_number }}</span>
-                                        @if($hasTask)
-                                            <span class="absolute top-1.5 left-1.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                                        @endif
+                                        <span class="absolute top-1.5 left-1.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                                     </div>
+                                    @endif
                                 @endforeach
 
-                                    {{-- ── PUBLIC WASHROOM TILES ── --}}
-                                    @foreach($publicWashrooms as $washroom)
-                                        @php
-                                            $hasTask = !is_null($washroom->taskId);
-                                            $bgClass   = $hasTask ? 'bg-amber-500/20 border-amber-500/50' : 'bg-slate-800 border-slate-700/50';
-                                            $textClass = $hasTask ? 'text-amber-300' : 'text-slate-500';
-                                            $idleClasses = "asset-tile relative rounded-2xl border-2 flex flex-col items-center justify-center gap-2 text-center transition-all {$bgClass} {$textClass}";
-                                        @endphp
-                                        <div id="washroom-{{ $washroom->id }}"
-                                             data-type="public"
-                                             data-id="{{ $washroom->id }}"
-                                             data-task-id="{{ $washroom->taskId ?? '' }}"
-                                             data-name="{{ $washroom->room_number }}"
+                                {{-- ── PUBLIC WASHROOM TILES ── --}}
+                                @foreach($publicWashrooms as $washroom)
+                                    @if(!is_null($washroom->taskId))
+                                    @php
+                                        $idleClasses = "asset-tile relative rounded-2xl border-2 flex flex-col items-center justify-center gap-2 text-center transition-all bg-amber-500/20 border-amber-500/50 text-amber-300";
+                                    @endphp
+                                    <div id="washroom-{{ $washroom->id }}"
+                                         data-type="public"
+                                         data-id="{{ $washroom->id }}"
+                                         data-task-id="{{ $washroom->taskId }}"
+                                         data-name="{{ $washroom->room_number }}"
                                          data-floor-id="{{ $slug }}"
                                          data-floor-db-id="{{ $floor->id }}"
-                                         data-has-task="{{ $hasTask ? '1' : '0' }}"
+                                         data-has-task="1"
                                          data-idle-classes="{{ $idleClasses }}"
                                          onclick="toggleSelection(this)"
                                          class="{{ $idleClasses }} cursor-pointer group/tile hover:scale-110 hover:z-30 hover:border-indigo-500/50 shadow-xl hover:shadow-indigo-500/10">
-                                        <i class="fas fa-droplet text-xl {{ $hasTask ? 'opacity-70 group-hover/tile:opacity-100 group-hover/tile:text-indigo-400' : 'opacity-40 group-hover/tile:text-indigo-400' }} transition-all"></i>
+                                        <i class="fas fa-droplet text-xl opacity-70 group-hover/tile:opacity-100 group-hover/tile:text-indigo-400 transition-all"></i>
                                         <span class="text-xs font-black tracking-tight leading-none group-hover/tile:text-white">{{ $washroom->room_number }}</span>
-                                        @if($hasTask)
-                                            <span class="absolute top-1.5 left-1.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                                        @endif
+                                        <span class="absolute top-1.5 left-1.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                                     </div>
+                                    @endif
                                 @endforeach
 
                             </div>
