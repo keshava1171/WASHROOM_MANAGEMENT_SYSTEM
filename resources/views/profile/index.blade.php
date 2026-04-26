@@ -149,7 +149,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('profile.email') }}" method="POST" class="space-y-8" data-ajax-form>
+            <form action="{{ route('profile.email') }}" method="POST" class="space-y-8">
                 @csrf
                 @method('PUT')
                 <div class="space-y-4">
