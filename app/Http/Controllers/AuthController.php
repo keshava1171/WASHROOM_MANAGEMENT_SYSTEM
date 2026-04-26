@@ -125,9 +125,14 @@ class AuthController extends Controller
             event(new \Illuminate\Auth\Events\Verified($user));
         }
 
-        // Redirect directly to their dashboard with a success message.
-        // We no longer log them out, allowing a smooth continuation.
-        return $this->redirectToRoleDashboard($user)->with('success', 'Email verified successfully! Your uplink is synchronized.');
+        // After email change verification, we MUST log them out and force a re-login
+        // so they authenticate with their newly verified email address.
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')
+            ->with('success', 'Email verified successfully! Please sign in with your new email address to continue.');
     }
 
     public function resendVerification(Request $request)
