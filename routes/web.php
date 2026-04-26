@@ -19,6 +19,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 });
 
+// Staff login entry point — used in welcome emails.
+// If an admin (or anyone) is already logged in, logs them out first,
+// then shows the standard login page so the new staff member can sign in.
+Route::get('/staff-login', [AuthController::class, 'showStaffLogin'])->name('staff.login.entry');
+
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth'])->group(function () {
@@ -33,7 +38,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/verify-email', [AuthController::class, 'showVerification'])->name('verification.notice');
     Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['signed'])->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerification'])->middleware(['throttle:6,1'])->name('verification.send');
-    Route::post('/verify-email/update', [AuthController::class, 'updateEmail'])->name('verification.update_email');
+    Route::post('/verify-email/update', [ProfileController::class, 'updateEmail'])->name('verification.update_email');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {

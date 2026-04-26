@@ -19,6 +19,23 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
+    /**
+     * Staff welcome email entry point.
+     * Clears any existing session (e.g. admin testing the link while logged in),
+     * then redirects to the standard login page with a helpful message.
+     */
+    public function showStaffLogin(Request $request)
+    {
+        if (Auth::check()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        return redirect()->route('login')
+            ->with('info', 'Please sign in with your staff credentials to access the Staff Portal.');
+    }
+
     public function showRegister()
     {
         if (Auth::check()) {
@@ -94,6 +111,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
+        // If already verified, go straight to their dashboard.
         if ($user->hasVerifiedEmail()) {
             return $this->redirectToRoleDashboard($user);
         }
@@ -102,14 +120,14 @@ class AuthController extends Controller
             event(new \Illuminate\Auth\Events\Verified($user));
         }
 
-        if ($user->role === 'staff') {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-            return redirect()->route('login')->with('success', 'Staff identity verified. Please re-authenticate to activate operative access.');
-        }
+        // After email change verification, ALL roles must re-login with their new
+        // email address so the session is completely fresh.
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        return $this->redirectToRoleDashboard($user)->with('success', 'Neural synchronization complete! Your identity has been verified.');
+        return redirect()->route('login')
+            ->with('success', 'Email verified successfully! Please sign in with your new email address to continue.');
     }
 
     public function resendVerification(Request $request)
@@ -119,45 +137,18 @@ class AuthController extends Controller
         return back()->with('success', 'Verification link sent! Please check your inbox.');
     }
 
-    public function updateEmail(Request $request)
-    {
-        $request->validate([
-            'email' => [
-                'required',
-                'email',
-                \Illuminate\Validation\Rule::unique('users')->ignore(auth()->id()),
-            ],
-        ], [
-            'email.unique' => 'This email is already registered in our system.',
-        ]);
-
-        $user = auth()->user();
-
-        if ($user->email !== $request->email) {
-            $user->email = $request->email;
-            $user->email_verified_at = null;
-            $user->save();
-
-            $user->sendEmailVerificationNotification();
-
-            return back()->with('success', 'Email updated. A new verification link has been sent to your inbox.');
-        }
-
-        return back()->with('success', 'Email is already set to that address.');
-    }
+    // NOTE: Email update from the verify page is handled by ProfileController::updateEmail()
+    // to avoid duplicate verification emails. The route 'verification.update_email'
+    // now points to ProfileController@updateEmail.
 
     private function redirectToRoleDashboard($user)
     {
         if ($user->role === 'admin' || $user->role === 'staff') {
             
-            $defaultAdmin = ($user->role === 'admin' && $user->email === 'admin@wms.com');
-            $defaultStaff = ($user->role === 'staff' && $user->must_change_password);
-
-            if ($defaultAdmin || $defaultStaff) {
-                $msg = $defaultAdmin 
-                    ? 'Authentication successful! Security protocols require the Root Administrator to synchronize their system identity (Email) now.'
-                    : 'Authentication successful! Security protocols require you to update your permanent password and profile details now.';
-                
+            // Redirect to profile if first-time login (must change password).
+            // This covers both the default admin (must_change_password=true) and new staff accounts.
+            if ($user->must_change_password) {
+                $msg = 'Authentication successful! Security protocols require you to update your password and profile details now.';
                 return redirect()->route('profile.edit')->with('info', $msg);
             }
             

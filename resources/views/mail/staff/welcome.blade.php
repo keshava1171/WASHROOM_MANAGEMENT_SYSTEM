@@ -12,7 +12,7 @@ Your hospital staff account has been created by the Administrator. Below are you
 > **Important:** For security purposes, you will be required to **change your password** immediately after your first login.
 
 <x-mail::button :url="$loginUrl" color="success">
-Login to Staff Portal
+Login as Staff
 </x-mail::button>
 
 You will also receive a separate email to verify your address. Please verify it before accessing your dashboard.

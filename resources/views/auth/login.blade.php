@@ -31,6 +31,21 @@
                 </div>
             </div>
 
+            @if(session('info'))
+                <div class="mb-6 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 flex items-start gap-3">
+                    <i class="fas fa-id-badge text-indigo-500 mt-0.5 flex-shrink-0"></i>
+                    <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{{ session('info') }}</p>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-4 p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30">
+                    @foreach($errors->all() as $error)
+                        <p class="text-sm text-red-600 dark:text-red-400 font-medium">{{ $error }}</p>
+                    @endforeach
+                </div>
+            @endif
+
             
             <form action="{{ route('login.post') }}" method="POST" class="space-y-6">
                 @csrf

@@ -23,7 +23,7 @@ class StaffWelcomeEmail extends Mailable
         $this->staffName   = $staffName;
         $this->staffEmail  = $staffEmail;
         $this->tempPassword = $tempPassword;
-        $this->loginUrl    = route('login');
+        $this->loginUrl    = route('staff.login.entry');
         $this->fromAdmin   = $fromAdmin;
     }
 

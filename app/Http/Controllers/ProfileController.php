@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -62,42 +63,18 @@ class ProfileController extends Controller
 
             try {
                 $user->sendEmailVerificationNotification();
-                $message = 'Verification link dispatched! Please check your intelligence uplink to synchronize.';
-                session()->flash('verification_dispatched', true);
             } catch (\Exception $e) {
                 \Log::warning("Verification email failed for {$user->email}: " . $e->getMessage());
-                $message = 'Uplink updated, but the verification link could not be sent (SMTP error). Please try regenerating the link.';
             }
-            
-            if ($request->ajax()) {
-                return response()->json([
-                    'message' => $message,
-                    'updates' => [
-                        'email-status-indicator' => '
-                            <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-500/20">
-                                <i class="fas fa-circle-exclamation text-rose-500 animate-pulse"></i>
-                                <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest leading-none">Not Verified</span>
-                            </div>',
-                        'email-action-area' => '
-                            <div class="p-6 bg-emerald-500/10 rounded-2xl border-2 border-emerald-500/30 animate-zoom-in">
-                                <h5 class="text-sm font-black text-emerald-500 uppercase tracking-tighter mb-1">
-                                    <i class="fas fa-check-circle mr-2"></i> Verification Protocol Initiated
-                                </h5>
-                                <p class="text-[10px] font-bold text-emerald-600/80 dark:text-emerald-400/80 uppercase tracking-widest leading-relaxed">
-                                    A synchronization link has been sent to your new email. Please verify and re-authenticate to restore full node access.
-                                </p>
-                            </div>',
-                        'email-footer-area' => '
-                            <button type="button" onclick="document.getElementById(\'resend-form\').submit();" 
-                                    class="text-[10px] font-black text-indigo-500 hover:text-indigo-600 uppercase tracking-widest underline decoration-2 underline-offset-4 transition-all">
-                                <i class="fas fa-rotate mr-2"></i> Resend Verification Link
-                            </button>
-                            <button type="submit" class="btn-primary bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-12 py-4">Update Intelligence Uplink</button>'
-                    ]
-                ]);
-            }
-            
-            return redirect()->route('verification.notice')->with('success', $message);
+
+            // Log out immediately so the user must re-authenticate with the new email.
+            // This prevents the "verified" middleware from looping and avoids stale sessions.
+            \Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')
+                ->with('info', 'Email updated! A verification link has been sent to ' . $user->email . '. Please verify it then sign in with your new email.');
         }
 
         if ($request->ajax()) {
