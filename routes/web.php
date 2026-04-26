@@ -9,6 +9,16 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ComplaintController;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        $user = auth()->user();
+        if ($user->role === 'admin' || $user->role === 'staff') {
+            if ($user->must_change_password) {
+                return redirect()->route('profile.edit')->with('info', 'Authentication successful! Security protocols require you to update your password and profile details now.');
+            }
+            return redirect()->route($user->role . '.dashboard');
+        }
+        return redirect()->route('dashboard');
+    }
     return view('home');
 })->name('home');
 
