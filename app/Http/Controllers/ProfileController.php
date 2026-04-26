@@ -63,18 +63,14 @@ class ProfileController extends Controller
 
             try {
                 $user->sendEmailVerificationNotification();
+                $message = 'Verification link dispatched! Please check your new intelligence uplink to synchronize.';
+                session()->flash('verification_dispatched', true);
             } catch (\Exception $e) {
                 \Log::warning("Verification email failed for {$user->email}: " . $e->getMessage());
+                $message = 'Uplink updated, but the verification link could not be sent (SMTP error). Please try regenerating the link.';
             }
 
-            // Log out immediately so the user must re-authenticate with the new email.
-            // This prevents the "verified" middleware from looping and avoids stale sessions.
-            \Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()->route('login')
-                ->with('info', 'Email updated! A verification link has been sent to ' . $user->email . '. Please verify it then sign in with your new email.');
+            return redirect()->route('verification.notice')->with('success', $message);
         }
 
         if ($request->ajax()) {

@@ -38,6 +38,13 @@
                 </div>
             @endif
 
+            @if(session('success'))
+                <div class="mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 flex items-start gap-3">
+                    <i class="fas fa-check-circle text-emerald-500 mt-0.5 flex-shrink-0"></i>
+                    <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{{ session('success') }}</p>
+                </div>
+            @endif
+
             @if($errors->any())
                 <div class="mb-4 p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30">
                     @foreach($errors->all() as $error)

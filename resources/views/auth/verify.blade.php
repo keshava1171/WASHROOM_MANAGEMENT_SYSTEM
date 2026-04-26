@@ -25,10 +25,10 @@
                 Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn't receive the email, we will gladly send you another.
             </div>
 
-            @if (session('message') == 'Verification link sent!')
+            @if (session('message') == 'Verification link sent!' || session('success'))
                 <div class="mb-8 p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl flex items-center shadow-sm animate-zoom-in text-sm font-semibold text-emerald-800 dark:text-emerald-300">
                     <i class="fas fa-paper-plane mr-3 text-emerald-500"></i>
-                    A new verification link has been sent to the email address you provided during registration.
+                    {{ session('success') ?? 'A new verification link has been sent to the email address you provided during registration.' }}
                 </div>
             @endif
 
