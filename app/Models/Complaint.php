@@ -62,6 +62,33 @@ class Complaint extends Model
         return $query->where('status', 'resolved');
     }
 
+    public function markAsResolved(?string $notes = null): void
+    {
+        $this->update([
+            'status'          => 'resolved',
+            'resolved_at'     => now(),
+            'last_updated_by' => auth()->user()->name ?? 'System',
+            'admin_notes'     => $notes ?? $this->admin_notes,
+        ]);
+    }
+
+    public function markAsInProgress(?string $notes = null): void
+    {
+        $this->update([
+            'status'          => 'in_progress',
+            'last_updated_by' => auth()->user()->name ?? 'System',
+            'admin_notes'     => $notes ?? $this->admin_notes,
+        ]);
+    }
+
+    public function markAsPending(): void
+    {
+        $this->update([
+            'status'          => 'pending',
+            'last_updated_by' => auth()->user()->name ?? 'System',
+        ]);
+    }
+
     public function getLocationDisplay()
     {
         $parts = [];
