@@ -60,6 +60,11 @@ class AuthController extends Controller
                 $user->updateLastLogin();
             }
 
+            // Respect the intended URL if one was set (e.g. they clicked a verification link while logged out)
+            if (session()->has('url.intended')) {
+                return redirect()->intended();
+            }
+
             return $this->redirectToRoleDashboard($user);
         }
 
@@ -120,14 +125,9 @@ class AuthController extends Controller
             event(new \Illuminate\Auth\Events\Verified($user));
         }
 
-        // After email change verification, ALL roles must re-login with their new
-        // email address so the session is completely fresh.
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect()->route('login')
-            ->with('success', 'Email verified successfully! Please sign in with your new email address to continue.');
+        // Redirect directly to their dashboard with a success message.
+        // We no longer log them out, allowing a smooth continuation.
+        return $this->redirectToRoleDashboard($user)->with('success', 'Email verified successfully! Your uplink is synchronized.');
     }
 
     public function resendVerification(Request $request)
