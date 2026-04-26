@@ -20,16 +20,20 @@ class StaffController extends Controller
             ->sortBy(fn($t) => $t->floor->level ?? 999)
             ->groupBy(fn($t) => $t->floor->name ?? 'GENERAL GRID');
 
-        // Full facility floors with rooms & washrooms (mirrors admin grid)
-        $floors = Floor::with([
-            'rooms' => fn($q) => $q->orderBy('room_number'),
-            'washrooms' => fn($q) => $q->orderBy('room_number'),
-        ])->orderBy('level')->get();
-
         // My active tasks keyed by room_id / washroom_id for status colouring
         $myTasks = Task::where('assigned_to', $user->id)
             ->whereIn('status', ['pending', 'assigned', 'in_progress'])
             ->get();
+
+        $activeFloorIds = $myTasks->pluck('floor_id')->unique()->filter()->toArray();
+        $activeRoomIds = $myTasks->pluck('room_id')->unique()->filter()->toArray();
+        $activeWashroomIds = $myTasks->pluck('washroom_id')->unique()->filter()->toArray();
+
+        // Only fetch floors that have active tasks, and only load the specific rooms/washrooms assigned.
+        $floors = Floor::with([
+            'rooms' => fn($q) => $q->whereIn('id', $activeRoomIds)->orderBy('room_number'),
+            'washrooms' => fn($q) => $q->whereIn('id', $activeWashroomIds)->orderBy('room_number'),
+        ])->whereIn('id', $activeFloorIds)->orderBy('level')->get();
 
         // Annotate rooms and washrooms with task status
         $floors->each(function ($floor) use ($myTasks) {
