@@ -56,6 +56,13 @@
         </div>
     @endif
 
+    @if(session('info'))
+        <div class="mb-8 p-5 bg-indigo-50 dark:bg-indigo-500/10 border-2 border-indigo-500/20 rounded-2xl flex items-center gap-4 text-indigo-600 dark:text-indigo-400">
+            <i class="fas fa-shield-halved text-xl"></i>
+            <p class="text-sm font-bold uppercase tracking-widest">{{ session('info') }}</p>
+        </div>
+    @endif
+
     <div class="space-y-10">
         
         

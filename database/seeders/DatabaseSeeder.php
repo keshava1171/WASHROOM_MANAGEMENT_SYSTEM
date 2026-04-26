@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password123'),
             'role' => 'admin',
             'email_verified_at' => now(),
+            'must_change_password' => true,
         ]);
 
         $basement = Floor::create(['name' => 'Basement / Logistics', 'level' => -1]);
