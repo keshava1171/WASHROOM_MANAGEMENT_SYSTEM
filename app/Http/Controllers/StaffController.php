@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\Complaint;
-use App\Models\Floor;
+use App\Models\Floor;  
 
 class StaffController extends Controller
 {
